@@ -106,9 +106,55 @@ git push origin main
 GitHub Actions will automatically deploy only the changed Function App(s).
 
 **Requirements:**
-- Self-hosted GitHub Runner (running in Azure VNet)
+- **Self-hosted GitHub Runner** (running in Azure VNet - see setup below)
 - Configured GitHub Secrets:
   - `AZURE_CREDENTIALS` - Service Principal credentials JSON
+
+**Self-Hosted Runner Setup:**
+
+Due to Private Endpoints on Function Apps, deployment requires a runner inside the Azure VNet:
+
+1. **Create a VM in the same VNet**:
+   - Recommended: Ubuntu Server, Standard_B2s or larger
+   - Must be in the same VNet as your Function Apps
+   - Enable SSH access via Bastion or VPN
+
+2. **Install prerequisites on the VM**:
+   ```bash
+   # Update system
+   sudo apt-get update
+   
+   # Install Azure CLI
+   curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+   
+   # Install Python 3.12
+   sudo apt-get install -y python3.12 python3.12-venv python3-pip
+   
+   # Install build tools
+   sudo apt-get install -y curl jq libicu-dev zip unzip
+   ```
+
+3. **Install GitHub Actions Runner**:
+   - Go to your repository: Settings → Actions → Runners → New self-hosted runner
+   - Select Linux and follow the commands provided
+   - Download and configure the runner:
+     ```bash
+     mkdir actions-runner && cd actions-runner
+     curl -o actions-runner-linux-x64-2.321.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.321.0/actions-runner-linux-x64-2.321.0.tar.gz
+     tar xzf ./actions-runner-linux-x64-2.321.0.tar.gz
+     ./config.sh --url https://github.com/<owner>/<repo> --token <YOUR_TOKEN>
+     ```
+
+4. **Run as a service**:
+   ```bash
+   sudo ./svc.sh install
+   sudo ./svc.sh start
+   sudo ./svc.sh status
+   ```
+
+5. **Verify runner appears** in GitHub repository settings under Actions → Runners
+
+**Important**: Restart the runner service after installing new tools (like Azure CLI or Python) for them to be available in workflows.
 
 #### Option 2: Manual Deployment (requires network access)
 
@@ -117,6 +163,8 @@ GitHub Actions will automatically deploy only the changed Function App(s).
 cd functions_apis/account_api
 func azure functionapp publish <your-function-app-name> --python
 ```
+
+**Note**: This only works from within the VNet (e.g., from the self-hosted runner VM) due to Private Endpoints.
 
 ## 📡 API Endpoints
 

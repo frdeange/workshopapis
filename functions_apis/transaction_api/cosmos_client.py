@@ -21,12 +21,12 @@ class CosmosDBClient:
     def __init__(self):
         self._client: Optional[CosmosClient] = None
         self._database = None
-        self._endpoint = os.getenv("COSMOS_ENDPOINT")
-        self._database_name = os.getenv("COSMOS_DATABASE_NAME")
+        self._endpoint = os.getenv("AZURE_COSMOSDB_URI")
+        self._database_name = os.getenv("AZURE_COSMOSDB_DATABASE", "BankingDB")
         
-        if not self._endpoint or not self._database_name:
+        if not self._endpoint:
             raise ValueError(
-                "COSMOS_ENDPOINT and COSMOS_DATABASE_NAME environment variables must be set"
+                "AZURE_COSMOSDB_URI environment variable must be set"
             )
         
         self._initialize_client()

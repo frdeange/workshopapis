@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'workshopenv-accountapi'
+  AZURE_FUNCTIONAPP_NAME: 'workshoptools-accountapi'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'functions_apis/account_api'
   PYTHON_VERSION: '3.12'
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v4

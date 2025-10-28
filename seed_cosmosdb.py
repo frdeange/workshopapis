@@ -37,9 +37,10 @@ class CosmosDBSeeder:
     """Handles seeding of CosmosDB with initial data."""
     
     def __init__(self):
-        """Initialize CosmosDB client with RBAC authentication."""
+        """Initialize CosmosDB client with key or RBAC authentication."""
         self.endpoint = os.getenv("AZURE_COSMOSDB_URI")
         self.database_name = os.getenv("AZURE_COSMOSDB_DATABASE", "BankingDB")
+        self.key = os.getenv("AZURE_COSMOSDB_KEY")
         
         if not self.endpoint:
             raise ValueError("AZURE_COSMOSDB_URI environment variable is not set")
@@ -48,10 +49,48 @@ class CosmosDBSeeder:
         logger.info(f"Endpoint: {self.endpoint}")
         logger.info(f"Database: {self.database_name}")
         
-        # Use DefaultAzureCredential for RBAC
-        credential = DefaultAzureCredential()
-        self.client = CosmosClient(url=self.endpoint, credential=credential)
-        self.database = self.client.get_database_client(self.database_name)
+        # Use key if available, otherwise fall back to RBAC
+        if self.key:
+            logger.info("Using CosmosDB key authentication")
+            self.client = CosmosClient(url=self.endpoint, credential=self.key)
+        else:
+            logger.info("Using DefaultAzureCredential (RBAC) authentication")
+            credential = DefaultAzureCredential()
+            self.client = CosmosClient(url=self.endpoint, credential=credential)
+        
+        # Initialize database (will be created in setup_database_and_containers)
+        self.database = None
+    
+    def setup_database_and_containers(self):
+        """Create database and containers if they don't exist."""
+        logger.info("Setting up database and containers...")
+        
+        # Create database if it doesn't exist
+        logger.info(f"Creating database '{self.database_name}' if it doesn't exist...")
+        database = self.client.create_database_if_not_exists(id=self.database_name)
+        self.database = database
+        logger.info(f"✓ Database '{self.database_name}' ready")
+        
+        # Define containers with their partition keys
+        containers_config = [
+            {"name": "accounts", "partition_key": "/userName"},
+            {"name": "payment-methods", "partition_key": "/accountId"},
+            {"name": "beneficiaries", "partition_key": "/accountId"},
+            {"name": "transactions", "partition_key": "/accountId"}
+        ]
+        
+        # Create containers if they don't exist
+        for config in containers_config:
+            logger.info(f"Creating container '{config['name']}' if it doesn't exist...")
+            try:
+                container = database.create_container_if_not_exists(
+                    id=config["name"],
+                    partition_key={"paths": [config["partition_key"]], "kind": "Hash"}
+                )
+                logger.info(f"✓ Container '{config['name']}' ready with partition key {config['partition_key']}")
+            except Exception as e:
+                logger.error(f"✗ Failed to create container '{config['name']}': {e}")
+                raise
     
     def seed_all(self):
         """Seed all containers with initial data."""
@@ -60,6 +99,10 @@ class CosmosDBSeeder:
         logger.info("=" * 60)
         
         try:
+            # First, ensure database and containers exist
+            self.setup_database_and_containers()
+            
+            # Then seed the data
             self.seed_accounts()
             self.seed_payment_methods()
             self.seed_beneficiaries()

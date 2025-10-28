@@ -76,7 +76,7 @@ def get_account_by_id(account_id: str) -> Optional[Account]:
 
 
 @app.function_name(name="health")
-@app.route(route="health", methods=["GET"])
+@app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def health_check(req: func.HttpRequest) -> func.HttpResponse:
     """Health check endpoint"""
     return func.HttpResponse(
@@ -87,7 +87,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.function_name(name="get_accounts_by_user")
-@app.route(route="accounts/user/{user_name}", methods=["GET"])
+@app.route(route="accounts/user/{user_name}", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def get_accounts_by_user_name(req: func.HttpRequest) -> func.HttpResponse:
     """Get all accounts for a specific user"""
     try:
@@ -126,7 +126,7 @@ def get_accounts_by_user_name(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.function_name(name="get_account_details")
-@app.route(route="accounts/{account_id}", methods=["GET"])
+@app.route(route="accounts/{account_id}", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def get_account_details(req: func.HttpRequest) -> func.HttpResponse:
     """Get account details and available payment methods"""
     try:
@@ -179,7 +179,7 @@ def get_account_details(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.function_name(name="get_payment_method_details")
-@app.route(route="payment-methods/{payment_method_id}", methods=["GET"])
+@app.route(route="payment-methods/{payment_method_id}", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def get_payment_method_details(req: func.HttpRequest) -> func.HttpResponse:
     """Get payment method details with available balance"""
     try:
@@ -245,7 +245,7 @@ def get_payment_method_details(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.function_name(name="get_registered_beneficiary")
-@app.route(route="accounts/{account_id}/beneficiaries", methods=["GET"])
+@app.route(route="accounts/{account_id}/beneficiaries", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def get_registered_beneficiary(req: func.HttpRequest) -> func.HttpResponse:
     """Get list of registered beneficiaries for a specific account"""
     try:

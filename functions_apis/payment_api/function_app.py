@@ -1,3 +1,10 @@
+"""
+Azure Function App - Payment API
+
+HTTP Triggers for payment processing operations with CosmosDB integration.
+Updated to use GitHub-hosted runners for deployment.
+"""
+
 import azure.functions as func
 import logging
 import os

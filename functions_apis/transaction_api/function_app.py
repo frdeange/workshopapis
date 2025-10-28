@@ -1,3 +1,10 @@
+"""
+Azure Function App - Transaction API
+
+HTTP Triggers for transaction management operations with CosmosDB integration.
+Updated to use GitHub-hosted runners for deployment.
+"""
+
 import azure.functions as func
 import logging
 import os

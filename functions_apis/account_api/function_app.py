@@ -2,6 +2,7 @@
 Azure Function App - Account API
 
 HTTP Triggers for account management operations with CosmosDB integration.
+Updated to use GitHub-hosted runners for deployment.
 """
 
 import azure.functions as func

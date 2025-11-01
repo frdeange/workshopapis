@@ -1,0 +1,496 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Transaction API",
+        "description": "Banking Transaction API for managing and querying transaction records. Provides endpoints to retrieve transaction history, search by recipient, and register new transactions from external systems like the Payment API.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [{
+        "url": "https://workshoptools-apimfrdeange.azure-api.net/transactionapi",
+        "description": "Production API Gateway"
+    }],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Returns the health status of the Transaction API service. Use this endpoint to verify that the service is running and accessible.",
+                "operationId": "get-health",
+                "tags": ["Health"],
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy and operational",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "service": {
+                                            "type": "string",
+                                            "example": "transaction-api"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "status": "healthy",
+                                    "service": "transaction-api"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{account_id}": {
+            "get": {
+                "summary": "Get Last Transactions",
+                "description": "Retrieves the most recent transactions for a specific account. Returns up to 10 transactions ordered by timestamp in descending order (newest first). Use this endpoint to display recent account activity.",
+                "operationId": "get-last-transactions",
+                "tags": ["Transactions"],
+                "parameters": [{
+                    "name": "account_id",
+                    "in": "path",
+                    "description": "ID of the account to retrieve transactions for",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "example": "1010"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved transactions. Returns array of transaction objects sorted by newest first.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Transaction"
+                                    }
+                                },
+                                "examples": {
+                                    "multipleTransactions": {
+                                        "summary": "Multiple transactions",
+                                        "value": [
+                                            {
+                                                "id": "15",
+                                                "description": "Payment to Tom TheLawyer",
+                                                "type": "debit",
+                                                "recipientName": "Tom TheLawyer",
+                                                "recipientBankReference": "555654321",
+                                                "accountId": "1010",
+                                                "paymentType": "Visa",
+                                                "amount": 300.00,
+                                                "timestamp": "2023-10-05T11:15:00.000000"
+                                            },
+                                            {
+                                                "id": "14",
+                                                "description": "Payment to Sarah TheAccountant",
+                                                "type": "debit",
+                                                "recipientName": "Sarah TheAccountant",
+                                                "recipientBankReference": "555123456",
+                                                "accountId": "1010",
+                                                "paymentType": "BankTransfer",
+                                                "amount": 200.00,
+                                                "timestamp": "2023-10-04T16:45:00.000000"
+                                            },
+                                            {
+                                                "id": "13",
+                                                "description": "Payment to Tom TheLawyer",
+                                                "type": "debit",
+                                                "recipientName": "Tom TheLawyer",
+                                                "recipientBankReference": "555654321",
+                                                "accountId": "1010",
+                                                "paymentType": "BankTransfer",
+                                                "amount": 150.00,
+                                                "timestamp": "2023-10-03T09:20:00.000000"
+                                            }
+                                        ]
+                                    },
+                                    "emptyTransactions": {
+                                        "summary": "No transactions found",
+                                        "value": []
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while querying transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Error querying transactions from database"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Notify Transaction",
+                "description": "Creates a new transaction record in the system. This endpoint is typically called by the Payment API after successfully processing a payment. It persists the transaction details to the database for historical tracking and reporting.",
+                "operationId": "post-notify-transaction",
+                "tags": ["Transactions"],
+                "parameters": [{
+                    "name": "account_id",
+                    "in": "path",
+                    "description": "ID of the account associated with the transaction",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "example": "1010"
+                    }
+                }],
+                "requestBody": {
+                    "description": "Transaction details to be recorded in the system",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionRequest"
+                            },
+                            "example": {
+                                "id": "txn-1730458200.123",
+                                "description": "Payment to Sarah TheAccountant",
+                                "type": "debit",
+                                "recipientName": "Sarah TheAccountant",
+                                "recipientBankReference": "555123456",
+                                "paymentType": "BankTransfer",
+                                "amount": 120.50,
+                                "timestamp": "2023-11-01T10:30:00.000000"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transaction created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transaction notified successfully"
+                                        },
+                                        "transaction": {
+                                            "$ref": "#/components/schemas/Transaction"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Transaction notified successfully",
+                                    "transaction": {
+                                        "id": "txn-1730458200.123",
+                                        "description": "Payment to Sarah TheAccountant",
+                                        "type": "debit",
+                                        "recipientName": "Sarah TheAccountant",
+                                        "recipientBankReference": "555123456",
+                                        "accountId": "1010",
+                                        "paymentType": "BankTransfer",
+                                        "amount": 120.50,
+                                        "timestamp": "2023-11-01T10:30:00.000000"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - missing required fields or malformed data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Invalid transaction data: missing required field 'amount'"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while creating transaction",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Error creating transaction in database"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{account_id}/search": {
+            "get": {
+                "summary": "Search Transactions by Recipient Name",
+                "description": "Searches for transactions by recipient name for a specific account. Performs a case-insensitive substring match on the recipient name field. Useful for finding all transactions made to a particular recipient or filtering transaction history.",
+                "operationId": "get-transactions-by-recipient-name",
+                "tags": ["Transactions"],
+                "parameters": [
+                    {
+                        "name": "account_id",
+                        "in": "path",
+                        "description": "ID of the account to search transactions for",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "1010"
+                        }
+                    },
+                    {
+                        "name": "recipientName",
+                        "in": "query",
+                        "description": "Name (or partial name) of the recipient to search for. Case-insensitive.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Sarah"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved matching transactions. Returns array of transactions where recipient name contains the search term.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Transaction"
+                                    }
+                                },
+                                "examples": {
+                                    "foundTransactions": {
+                                        "summary": "Transactions found",
+                                        "value": [
+                                            {
+                                                "id": "14",
+                                                "description": "Payment to Sarah TheAccountant",
+                                                "type": "debit",
+                                                "recipientName": "Sarah TheAccountant",
+                                                "recipientBankReference": "555123456",
+                                                "accountId": "1010",
+                                                "paymentType": "BankTransfer",
+                                                "amount": 200.00,
+                                                "timestamp": "2023-10-04T16:45:00.000000"
+                                            },
+                                            {
+                                                "id": "12",
+                                                "description": "Payment to Sarah TheAccountant",
+                                                "type": "debit",
+                                                "recipientName": "Sarah TheAccountant",
+                                                "recipientBankReference": "555123456",
+                                                "accountId": "1010",
+                                                "paymentType": "Visa",
+                                                "amount": 100.00,
+                                                "timestamp": "2023-10-02T14:10:00.000000"
+                                            }
+                                        ]
+                                    },
+                                    "noResults": {
+                                        "summary": "No matching transactions",
+                                        "value": []
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing required query parameter",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Missing required query parameter: recipientName"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while searching transactions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Error searching transactions in database"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Transaction": {
+                "type": "object",
+                "description": "Transaction record representing a financial movement",
+                "required": ["id", "description", "type", "recipientName", "recipientBankReference", "accountId", "paymentType", "amount", "timestamp"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique transaction identifier",
+                        "example": "14"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Human-readable description of the transaction",
+                        "example": "Payment to Sarah TheAccountant"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Transaction type (debit or credit)",
+                        "enum": ["debit", "credit"],
+                        "example": "debit"
+                    },
+                    "recipientName": {
+                        "type": "string",
+                        "description": "Name of the transaction recipient",
+                        "example": "Sarah TheAccountant"
+                    },
+                    "recipientBankReference": {
+                        "type": "string",
+                        "description": "Bank reference or account number of the recipient",
+                        "example": "555123456"
+                    },
+                    "accountId": {
+                        "type": "string",
+                        "description": "ID of the account this transaction belongs to (partition key)",
+                        "example": "1010"
+                    },
+                    "paymentType": {
+                        "type": "string",
+                        "description": "Payment method used for the transaction",
+                        "enum": ["Visa", "BankTransfer", "DirectDebit"],
+                        "example": "BankTransfer"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Transaction amount (positive for both debits and credits)",
+                        "example": 200.00
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp when the transaction occurred",
+                        "example": "2023-10-04T16:45:00.000000"
+                    }
+                }
+            },
+            "TransactionRequest": {
+                "type": "object",
+                "description": "Request payload for creating a new transaction",
+                "required": ["id", "description", "type", "recipientName", "recipientBankReference", "paymentType", "amount", "timestamp"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique transaction identifier (typically generated by payment system)",
+                        "example": "txn-1730458200.123"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Human-readable description of the transaction",
+                        "example": "Payment to Sarah TheAccountant"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Transaction type",
+                        "enum": ["debit", "credit"],
+                        "example": "debit"
+                    },
+                    "recipientName": {
+                        "type": "string",
+                        "description": "Name of the transaction recipient",
+                        "example": "Sarah TheAccountant"
+                    },
+                    "recipientBankReference": {
+                        "type": "string",
+                        "description": "Bank reference or account number of the recipient",
+                        "example": "555123456"
+                    },
+                    "paymentType": {
+                        "type": "string",
+                        "description": "Payment method used for the transaction",
+                        "enum": ["Visa", "BankTransfer", "DirectDebit"],
+                        "example": "BankTransfer"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Transaction amount (must be positive)",
+                        "example": 120.50,
+                        "minimum": 0.01
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp when the transaction occurred",
+                        "example": "2023-11-01T10:30:00.000000"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "description": "Error response",
+                "required": ["error"],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Error message describing what went wrong",
+                        "example": "Error querying transactions from database"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header",
+                "description": "API subscription key in header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query",
+                "description": "API subscription key in query string"
+            }
+        }
+    },
+    "security": [{
+        "apiKeyHeader": []
+    }, {
+        "apiKeyQuery": []
+    }],
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Service health check endpoints"
+        },
+        {
+            "name": "Transactions",
+            "description": "Operations for managing and querying transaction records"
+        }
+    ]
+}

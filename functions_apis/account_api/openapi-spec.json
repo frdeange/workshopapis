@@ -1,0 +1,543 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Account API",
+        "description": "Banking API for account management operations including accounts, payment methods, and beneficiaries. Provides endpoints to retrieve account information, payment method details, and registered beneficiaries.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [{
+        "url": "https://workshoptools-apimfrdeange.azure-api.net/accountapi",
+        "description": "Production API Gateway"
+    }],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Returns the health status of the Account API service. Use this endpoint to verify that the service is running and accessible.",
+                "operationId": "get-health",
+                "tags": ["Health"],
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy and operational",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "service": {
+                                            "type": "string",
+                                            "example": "account-api"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "status": "healthy",
+                                    "service": "account-api"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/user/{user_name}": {
+            "get": {
+                "summary": "Get Accounts by Username",
+                "description": "Retrieves all bank accounts associated with a given username. This endpoint returns a list of accounts with their details including balance, currency, and associated payment methods.",
+                "operationId": "get-accounts-by-user",
+                "tags": ["Accounts"],
+                "parameters": [{
+                    "name": "user_name",
+                    "in": "path",
+                    "description": "Username of the account holder (email format)",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "example": "alice.user@contoso.com"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved accounts for the user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Account"
+                                    }
+                                },
+                                "example": [{
+                                    "id": "1000",
+                                    "userName": "alice.user@contoso.com",
+                                    "accountHolderFullName": "Alice User",
+                                    "currency": "USD",
+                                    "balance": "5000",
+                                    "activationDate": "2022-01-01",
+                                    "paymentMethods": [{
+                                        "id": "12345",
+                                        "type": "Visa",
+                                        "activationDate": "2022-01-01",
+                                        "expirationDate": "2025-01-01"
+                                    }]
+                                }]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{account_id}": {
+            "get": {
+                "summary": "Get Account Details",
+                "description": "Retrieves complete information about a specific account, including associated payment methods. The account ID must be numeric.",
+                "operationId": "get-account-details",
+                "tags": ["Accounts"],
+                "parameters": [{
+                    "name": "account_id",
+                    "in": "path",
+                    "description": "Unique identifier of the account (must be numeric)",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[0-9]+$",
+                        "example": "1010"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved account details with payment methods",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Account"
+                                },
+                                "example": {
+                                    "id": "1010",
+                                    "userName": "bob.user@contoso.com",
+                                    "accountHolderFullName": "Bob User",
+                                    "currency": "EUR",
+                                    "balance": "10000",
+                                    "activationDate": "2022-01-01",
+                                    "paymentMethods": [{
+                                        "id": "345678",
+                                        "type": "BankTransfer",
+                                        "activationDate": "2022-01-01",
+                                        "expirationDate": "9999-01-01"
+                                    }, {
+                                        "id": "55555",
+                                        "type": "Visa",
+                                        "activationDate": "2024-01-01",
+                                        "expirationDate": "2028-01-01"
+                                    }]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid account ID format (must be numeric)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "AccountId is not a valid number"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Account not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payment-methods/{payment_method_id}": {
+            "get": {
+                "summary": "Get Payment Method Details",
+                "description": "Retrieves complete information about a specific payment method, including card details and available balance. The payment method ID must be numeric.",
+                "operationId": "get-payment-method-details",
+                "tags": ["Payment Methods"],
+                "parameters": [{
+                    "name": "payment_method_id",
+                    "in": "path",
+                    "description": "Unique identifier of the payment method (must be numeric)",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[0-9]+$",
+                        "example": "12345"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved payment method details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentMethod"
+                                },
+                                "example": {
+                                    "id": "12345",
+                                    "accountId": "1000",
+                                    "type": "Visa",
+                                    "activationDate": "2022-01-01",
+                                    "expirationDate": "2025-01-01",
+                                    "availableBalance": "500.00",
+                                    "cardNumber": "1234567812345678"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid payment method ID format (must be numeric)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "PaymentMethodId is not a valid number"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Payment method not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Payment method not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{account_id}/beneficiaries": {
+            "get": {
+                "summary": "Get Registered Beneficiaries",
+                "description": "Retrieves all beneficiaries that have been registered for a given account. These beneficiaries can be used as recipients for payments. The account ID must be numeric.",
+                "operationId": "get-registered-beneficiaries",
+                "tags": ["Beneficiaries"],
+                "parameters": [{
+                    "name": "account_id",
+                    "in": "path",
+                    "description": "Unique identifier of the account (must be numeric)",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[0-9]+$",
+                        "example": "1000"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved beneficiaries list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Beneficiary"
+                                    }
+                                },
+                                "example": [{
+                                    "id": "1",
+                                    "accountId": "1000",
+                                    "fullName": "Mike ThePlumber",
+                                    "bankCode": "123456789",
+                                    "bankName": "Intesa Sanpaolo"
+                                }, {
+                                    "id": "2",
+                                    "accountId": "1000",
+                                    "fullName": "Jane TheElectrician",
+                                    "bankCode": "987654321",
+                                    "bankName": "UBS"
+                                }]
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid account ID format (must be numeric)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "AccountId is not a valid number"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Account": {
+                "type": "object",
+                "description": "Bank account information with associated payment methods",
+                "required": ["id", "userName", "accountHolderFullName", "currency"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier of the account",
+                        "example": "1000"
+                    },
+                    "userName": {
+                        "type": "string",
+                        "description": "Username of the account holder (email format)",
+                        "example": "alice.user@contoso.com"
+                    },
+                    "accountHolderFullName": {
+                        "type": "string",
+                        "description": "Full name of the account holder",
+                        "example": "Alice User"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "description": "Currency code (ISO 4217)",
+                        "example": "USD"
+                    },
+                    "activationDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date when the account was activated",
+                        "example": "2022-01-01"
+                    },
+                    "balance": {
+                        "type": "string",
+                        "description": "Current account balance",
+                        "example": "5000"
+                    },
+                    "paymentMethods": {
+                        "type": "array",
+                        "description": "List of payment methods associated with this account",
+                        "items": {
+                            "$ref": "#/components/schemas/PaymentMethodSummary"
+                        }
+                    }
+                }
+            },
+            "PaymentMethodSummary": {
+                "type": "object",
+                "description": "Summary information for a payment method",
+                "required": ["id", "type"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier of the payment method",
+                        "example": "12345"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type of payment method",
+                        "example": "Visa"
+                    },
+                    "activationDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date when the payment method was activated",
+                        "example": "2022-01-01"
+                    },
+                    "expirationDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Expiration date of the payment method",
+                        "example": "2025-01-01"
+                    }
+                }
+            },
+            "PaymentMethod": {
+                "type": "object",
+                "description": "Complete payment method information including card details",
+                "required": ["id", "type"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier of the payment method",
+                        "example": "12345"
+                    },
+                    "accountId": {
+                        "type": "string",
+                        "description": "ID of the account this payment method belongs to",
+                        "example": "1000"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type of payment method (Visa, BankTransfer, DirectDebit, etc.)",
+                        "example": "Visa"
+                    },
+                    "activationDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date when the payment method was activated",
+                        "example": "2022-01-01"
+                    },
+                    "expirationDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Expiration date of the payment method",
+                        "example": "2025-01-01"
+                    },
+                    "availableBalance": {
+                        "type": "string",
+                        "description": "Available balance for this payment method",
+                        "example": "500.00"
+                    },
+                    "cardNumber": {
+                        "type": "string",
+                        "description": "Card number (may be masked)",
+                        "example": "1234567812345678"
+                    }
+                }
+            },
+            "Beneficiary": {
+                "type": "object",
+                "description": "Beneficiary information for making payments",
+                "required": ["id", "fullName", "bankCode", "bankName"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier of the beneficiary",
+                        "example": "1"
+                    },
+                    "accountId": {
+                        "type": "string",
+                        "description": "ID of the account this beneficiary belongs to",
+                        "example": "1000"
+                    },
+                    "fullName": {
+                        "type": "string",
+                        "description": "Full name of the beneficiary",
+                        "example": "Mike ThePlumber"
+                    },
+                    "bankCode": {
+                        "type": "string",
+                        "description": "Bank code or routing number",
+                        "example": "123456789"
+                    },
+                    "bankName": {
+                        "type": "string",
+                        "description": "Name of the beneficiary's bank",
+                        "example": "Intesa Sanpaolo"
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "description": "Error response",
+                "required": ["error"],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Error message describing what went wrong",
+                        "example": "Account not found"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header",
+                "description": "API subscription key in header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query",
+                "description": "API subscription key in query string"
+            }
+        }
+    },
+    "security": [{
+        "apiKeyHeader": []
+    }, {
+        "apiKeyQuery": []
+    }],
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Service health check endpoints"
+        },
+        {
+            "name": "Accounts",
+            "description": "Operations related to bank accounts"
+        },
+        {
+            "name": "Payment Methods",
+            "description": "Operations related to payment methods"
+        },
+        {
+            "name": "Beneficiaries",
+            "description": "Operations related to registered beneficiaries"
+        }
+    ]
+}

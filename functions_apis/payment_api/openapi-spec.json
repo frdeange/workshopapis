@@ -1,0 +1,316 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Payment API",
+        "description": "Banking Payment API for processing transactions between accounts and beneficiaries. Handles payment validation, balance checks, and transaction creation through integration with the Transaction API.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [{
+        "url": "https://workshoptools-apimfrdeange.azure-api.net/paymentapi",
+        "description": "Production API Gateway"
+    }],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Returns the health status of the Payment API service. Use this endpoint to verify that the service is running and accessible.",
+                "operationId": "get-health",
+                "tags": ["Health"],
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy and operational",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "service": {
+                                            "type": "string",
+                                            "example": "payment-api"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "status": "healthy",
+                                    "service": "payment-api"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments": {
+            "post": {
+                "summary": "Process Payment",
+                "description": "Processes a payment from an account to a beneficiary using a specified payment method. This endpoint validates the account, payment method, beneficiary existence, and sufficient balance before processing. Upon success, it creates a transaction record via the Transaction API and returns the new account balance.",
+                "operationId": "post-process-payment",
+                "tags": ["Payments"],
+                "requestBody": {
+                    "description": "Payment request details including account, payment method, beneficiary, and amount",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PaymentRequest"
+                            },
+                            "example": {
+                                "accountId": "1010",
+                                "paymentMethodId": "345678",
+                                "beneficiaryId": "3",
+                                "amount": 120.50,
+                                "description": "Payment for consulting services"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment processed successfully. Returns transaction details and updated account balance.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaymentResponse"
+                                },
+                                "example": {
+                                    "success": true,
+                                    "message": "Payment processed successfully",
+                                    "transaction": {
+                                        "id": "txn-1730458200.123",
+                                        "description": "Payment to Sarah TheAccountant",
+                                        "type": "debit",
+                                        "recipientName": "Sarah TheAccountant",
+                                        "recipientBankReference": "555123456",
+                                        "accountId": "1010",
+                                        "paymentType": "BankTransfer",
+                                        "amount": 120.50,
+                                        "timestamp": "2023-11-01T10:30:00.000000"
+                                    },
+                                    "newBalance": 9879.50
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error - invalid data, insufficient balance, account/payment method/beneficiary not found, or invalid request format",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "insufficientBalance": {
+                                        "summary": "Insufficient balance",
+                                        "value": {
+                                            "error": "Insufficient balance"
+                                        }
+                                    },
+                                    "accountNotFound": {
+                                        "summary": "Account not found",
+                                        "value": {
+                                            "error": "Account 9999 not found"
+                                        }
+                                    },
+                                    "paymentMethodNotFound": {
+                                        "summary": "Payment method not found",
+                                        "value": {
+                                            "error": "Payment method 99999 not found"
+                                        }
+                                    },
+                                    "beneficiaryNotFound": {
+                                        "summary": "Beneficiary not found",
+                                        "value": {
+                                            "error": "Beneficiary 99 not found"
+                                        }
+                                    },
+                                    "invalidAmount": {
+                                        "summary": "Invalid amount",
+                                        "value": {
+                                            "error": "Amount must be positive"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error or failure communicating with Transaction API",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "Error calling Transaction API: Connection refused"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "PaymentRequest": {
+                "type": "object",
+                "description": "Payment request containing all necessary information to process a payment",
+                "required": ["accountId", "paymentMethodId", "beneficiaryId", "amount"],
+                "properties": {
+                    "accountId": {
+                        "type": "string",
+                        "description": "ID of the account making the payment",
+                        "example": "1010"
+                    },
+                    "paymentMethodId": {
+                        "type": "string",
+                        "description": "ID of the payment method to use for the transaction",
+                        "example": "345678"
+                    },
+                    "beneficiaryId": {
+                        "type": "string",
+                        "description": "ID of the beneficiary receiving the payment",
+                        "example": "3"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Amount to transfer (must be positive)",
+                        "example": 120.50,
+                        "minimum": 0.01
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Optional description for the payment",
+                        "example": "Payment for consulting services",
+                        "default": ""
+                    }
+                }
+            },
+            "PaymentResponse": {
+                "type": "object",
+                "description": "Response after successfully processing a payment",
+                "required": ["success", "message", "transaction", "newBalance"],
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Whether the payment was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Status message describing the result",
+                        "example": "Payment processed successfully"
+                    },
+                    "transaction": {
+                        "type": "object",
+                        "description": "Created transaction details",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "Unique transaction identifier",
+                                "example": "txn-1730458200.123"
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "Transaction description",
+                                "example": "Payment to Sarah TheAccountant"
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "Transaction type",
+                                "example": "debit"
+                            },
+                            "recipientName": {
+                                "type": "string",
+                                "description": "Name of the recipient",
+                                "example": "Sarah TheAccountant"
+                            },
+                            "recipientBankReference": {
+                                "type": "string",
+                                "description": "Bank reference of the recipient",
+                                "example": "555123456"
+                            },
+                            "accountId": {
+                                "type": "string",
+                                "description": "Account ID",
+                                "example": "1010"
+                            },
+                            "paymentType": {
+                                "type": "string",
+                                "description": "Payment method type used",
+                                "example": "BankTransfer"
+                            },
+                            "amount": {
+                                "type": "number",
+                                "format": "float",
+                                "description": "Transaction amount",
+                                "example": 120.50
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "ISO 8601 timestamp of the transaction",
+                                "example": "2023-11-01T10:30:00.000000"
+                            }
+                        }
+                    },
+                    "newBalance": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "New account balance after the payment",
+                        "example": 9879.50
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "description": "Error response",
+                "required": ["error"],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Error message describing what went wrong",
+                        "example": "Insufficient balance"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header",
+                "description": "API subscription key in header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query",
+                "description": "API subscription key in query string"
+            }
+        }
+    },
+    "security": [{
+        "apiKeyHeader": []
+    }, {
+        "apiKeyQuery": []
+    }],
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Service health check endpoints"
+        },
+        {
+            "name": "Payments",
+            "description": "Operations for processing payments between accounts and beneficiaries"
+        }
+    ]
+}

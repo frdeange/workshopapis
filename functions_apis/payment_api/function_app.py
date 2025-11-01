@@ -198,7 +198,19 @@ def process_payment(payment_request: PaymentRequest) -> dict:
 
 @app.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def health(req: func.HttpRequest) -> func.HttpResponse:
-    """Health check endpoint"""
+    """
+    Health check endpoint
+    
+    Returns the health status of the Payment API service.
+    
+    Returns:
+        200: Service is healthy
+        - Response body: {"status": "healthy", "service": "payment-api"}
+    
+    Example:
+        GET /api/health
+        Response: {"status": "healthy", "service": "payment-api"}
+    """
     logger.info("Health check requested")
     
     return func.HttpResponse(
@@ -210,7 +222,55 @@ def health(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="payments", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 def process_payment_endpoint(req: func.HttpRequest) -> func.HttpResponse:
-    """Process a payment"""
+    """
+    Process a payment transaction
+    
+    Processes a payment from an account to a beneficiary using a specified payment method.
+    Validates account, payment method, beneficiary, and sufficient balance before processing.
+    Creates a transaction record via the Transaction API.
+    
+    Request Body:
+        PaymentRequest object containing:
+        - accountId (str): ID of the account making the payment
+        - paymentMethodId (str): ID of the payment method to use
+        - beneficiaryId (str): ID of the beneficiary receiving the payment
+        - amount (float): Amount to transfer (must be positive)
+        - description (str, optional): Description for the payment
+    
+    Returns:
+        200: Payment processed successfully
+        - Response body: PaymentResponse with transaction details and new balance
+        400: Validation error (invalid data, insufficient balance, etc.)
+        - Response body: {"error": "error message"}
+        500: Internal server error
+        - Response body: {"error": "error message"}
+    
+    Example:
+        POST /api/payments
+        Request Body: {
+            "accountId": "1010",
+            "paymentMethodId": "345678",
+            "beneficiaryId": "3",
+            "amount": 120.50,
+            "description": "Payment for consulting services"
+        }
+        Response: {
+            "success": true,
+            "message": "Payment processed successfully",
+            "transaction": {
+                "id": "txn-1234567890.123",
+                "description": "Payment to Sarah TheAccountant",
+                "type": "debit",
+                "recipientName": "Sarah TheAccountant",
+                "recipientBankReference": "555123456",
+                "accountId": "1010",
+                "paymentType": "BankTransfer",
+                "amount": 120.50,
+                "timestamp": "2023-11-01T10:30:00.000000"
+            },
+            "newBalance": 9879.50
+        }
+    """
     logger.info("POST /payments")
     
     try:

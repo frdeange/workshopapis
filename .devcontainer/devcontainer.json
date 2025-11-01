@@ -12,9 +12,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-windows-ai-studio.windows-ai-studio",
 				"ms-azuretools.vscode-cosmosdb",
-				"ms-azuretools.vscode-azurecontainerapps"
+				"ms-azuretools.vscode-apimanagement"
 			]
 		}
 	},

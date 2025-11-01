@@ -1,10 +1,9 @@
 {
-    "azureFunctions.projectSubpath": "functions_apis\\account_api",
-    "azureFunctions.deploySubpath": "functions_apis\\account_api",
+    "azureFunctions.deploySubpath": "functions_apis/transaction_api",
+    "azureFunctions.projectSubpath": "functions_apis/transaction_api",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.projectLanguageModel": 2
+    "debug.internalConsoleOptions": "neverOpen"
 }

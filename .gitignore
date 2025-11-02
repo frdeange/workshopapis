@@ -217,3 +217,4 @@ __marimo__/
 
 # Azure Functions local settings (contains secrets)
 local.settings.json
+*testkiko*

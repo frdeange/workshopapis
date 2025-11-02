@@ -1,0 +1,644 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Industrial Inventory Management API",
+        "description": "API for managing spare parts and components inventory in manufacturing facilities. Provides comprehensive inventory tracking, stock monitoring, and reservation capabilities for maintenance operations.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:7071/api",
+            "description": "Local Development"
+        },
+        {
+            "url": "https://your-function-app.azurewebsites.net/api",
+            "description": "Azure Function App (update with your URL)"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Health check endpoints"
+        },
+        {
+            "name": "Inventory",
+            "description": "Inventory management operations"
+        },
+        {
+            "name": "Reservations",
+            "description": "Inventory reservation operations"
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Health check endpoint",
+                "description": "Returns the health status of the Inventory API service",
+                "operationId": "health_check",
+                "tags": ["Health"],
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "service": {
+                                            "type": "string",
+                                            "example": "inventory-api"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "status": "healthy",
+                                    "service": "inventory-api"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory": {
+            "get": {
+                "summary": "Get all inventory items",
+                "description": "Retrieve all items in the inventory with their current stock levels",
+                "operationId": "get_all_inventory",
+                "tags": ["Inventory"],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved inventory items",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/InventoryItem"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "item_id": "PART-001",
+                                        "name": "Industrial Bearing SKF 6205",
+                                        "category": "bearings",
+                                        "stock_quantity": 45,
+                                        "location": "Warehouse A - Shelf 12",
+                                        "min_stock_level": 10,
+                                        "unit_price": 25.50,
+                                        "supplier": "SKF Industrial Supplies",
+                                        "last_updated": "2023-10-15T14:30:00.000000"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/{item_id}": {
+            "get": {
+                "summary": "Check stock for specific item",
+                "description": "Check stock availability for a specific item by its ID",
+                "operationId": "check_stock",
+                "tags": ["Inventory"],
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Unique identifier of the inventory item",
+                        "schema": {
+                            "type": "string",
+                            "example": "PART-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved stock information",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StockCheckResponse"
+                                },
+                                "example": {
+                                    "item_id": "PART-001",
+                                    "available": true,
+                                    "stock_quantity": 45,
+                                    "location": "Warehouse A - Shelf 12",
+                                    "estimated_delivery_days": null
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": "Item not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/category/{category}": {
+            "get": {
+                "summary": "Get items by category",
+                "description": "Retrieve all items belonging to a specific category",
+                "operationId": "get_items_by_category",
+                "tags": ["Inventory"],
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "description": "Category name (bearings, motors, sensors, filters, seals)",
+                        "schema": {
+                            "type": "string",
+                            "enum": ["bearings", "motors", "sensors", "filters", "seals"],
+                            "example": "bearings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved items in category",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/InventoryItem"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/low-stock": {
+            "get": {
+                "summary": "Get items with low stock",
+                "description": "Retrieve all items that are at or below their minimum stock level",
+                "operationId": "get_low_stock_items",
+                "tags": ["Inventory"],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved low stock items",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/InventoryItem"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "item_id": "PART-002",
+                                        "name": "Deep Groove Ball Bearing 6308",
+                                        "category": "bearings",
+                                        "stock_quantity": 8,
+                                        "location": "Warehouse A - Shelf 13",
+                                        "min_stock_level": 15,
+                                        "unit_price": 42.00,
+                                        "supplier": "SKF Industrial Supplies",
+                                        "last_updated": "2023-10-14T10:20:00.000000"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/reserve": {
+            "post": {
+                "summary": "Reserve items for maintenance",
+                "description": "Reserve inventory items for scheduled maintenance work",
+                "operationId": "reserve_items",
+                "tags": ["Reservations"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReservationRequest"
+                            },
+                            "example": {
+                                "item_id": "PART-001",
+                                "quantity": 5,
+                                "requested_by": "John Technician",
+                                "work_order": "WO-2023-1001"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully created reservation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReservationResponse"
+                                },
+                                "example": {
+                                    "reservation_id": "RES-20231001-001",
+                                    "item_id": "PART-001",
+                                    "quantity": 5,
+                                    "status": "confirmed",
+                                    "reserved_until": "2023-10-22T14:30:00.000000"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or insufficient stock",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": "Insufficient stock. Available: 3, Requested: 5"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": "Item not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reservations": {
+            "get": {
+                "summary": "Get all active reservations",
+                "description": "Retrieve all active item reservations",
+                "operationId": "get_all_reservations",
+                "tags": ["Reservations"],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved reservations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ReservationResponse"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "reservation_id": "RES-20231001-001",
+                                        "item_id": "PART-001",
+                                        "quantity": 5,
+                                        "status": "confirmed",
+                                        "reserved_until": "2023-10-22T14:30:00.000000"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reservations/{reservation_id}": {
+            "get": {
+                "summary": "Get specific reservation",
+                "description": "Retrieve details of a specific reservation",
+                "operationId": "get_reservation",
+                "tags": ["Reservations"],
+                "parameters": [
+                    {
+                        "name": "reservation_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Unique identifier of the reservation",
+                        "schema": {
+                            "type": "string",
+                            "example": "RES-20231001-001"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved reservation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReservationResponse"
+                                },
+                                "example": {
+                                    "reservation_id": "RES-20231001-001",
+                                    "item_id": "PART-001",
+                                    "quantity": 5,
+                                    "status": "confirmed",
+                                    "reserved_until": "2023-10-22T14:30:00.000000"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reservation not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": "Reservation not found"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "InventoryItem": {
+                "type": "object",
+                "required": [
+                    "item_id",
+                    "name",
+                    "category",
+                    "stock_quantity",
+                    "location",
+                    "min_stock_level",
+                    "unit_price",
+                    "supplier",
+                    "last_updated"
+                ],
+                "properties": {
+                    "item_id": {
+                        "type": "string",
+                        "description": "Unique identifier for the inventory item",
+                        "example": "PART-001"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the inventory item",
+                        "example": "Industrial Bearing SKF 6205"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Category of the item",
+                        "enum": ["bearings", "motors", "sensors", "filters", "seals"],
+                        "example": "bearings"
+                    },
+                    "stock_quantity": {
+                        "type": "integer",
+                        "description": "Current quantity in stock",
+                        "example": 45,
+                        "minimum": 0
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Physical location in warehouse",
+                        "example": "Warehouse A - Shelf 12"
+                    },
+                    "min_stock_level": {
+                        "type": "integer",
+                        "description": "Minimum stock level threshold for reordering",
+                        "example": 10,
+                        "minimum": 0
+                    },
+                    "unit_price": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Unit price in USD",
+                        "example": 25.50,
+                        "minimum": 0
+                    },
+                    "supplier": {
+                        "type": "string",
+                        "description": "Supplier name",
+                        "example": "SKF Industrial Supplies"
+                    },
+                    "last_updated": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp of last update",
+                        "example": "2023-10-15T14:30:00.000000"
+                    }
+                }
+            },
+            "StockCheckResponse": {
+                "type": "object",
+                "required": [
+                    "item_id",
+                    "available",
+                    "stock_quantity"
+                ],
+                "properties": {
+                    "item_id": {
+                        "type": "string",
+                        "description": "Item identifier",
+                        "example": "PART-001"
+                    },
+                    "available": {
+                        "type": "boolean",
+                        "description": "Whether item is available in stock",
+                        "example": true
+                    },
+                    "stock_quantity": {
+                        "type": "integer",
+                        "description": "Current stock quantity",
+                        "example": 45
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Physical location if available",
+                        "example": "Warehouse A - Shelf 12"
+                    },
+                    "estimated_delivery_days": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Estimated delivery days if out of stock",
+                        "example": null
+                    }
+                }
+            },
+            "ReservationRequest": {
+                "type": "object",
+                "required": [
+                    "item_id",
+                    "quantity",
+                    "requested_by",
+                    "work_order"
+                ],
+                "properties": {
+                    "item_id": {
+                        "type": "string",
+                        "description": "ID of the item to reserve",
+                        "example": "PART-001"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "description": "Quantity to reserve",
+                        "example": 5,
+                        "minimum": 1
+                    },
+                    "requested_by": {
+                        "type": "string",
+                        "description": "Name or ID of person requesting reservation",
+                        "example": "John Technician"
+                    },
+                    "work_order": {
+                        "type": "string",
+                        "description": "Associated work order number",
+                        "example": "WO-2023-1001"
+                    }
+                }
+            },
+            "ReservationResponse": {
+                "type": "object",
+                "required": [
+                    "reservation_id",
+                    "item_id",
+                    "quantity",
+                    "status",
+                    "reserved_until"
+                ],
+                "properties": {
+                    "reservation_id": {
+                        "type": "string",
+                        "description": "Unique reservation identifier",
+                        "example": "RES-20231001-001"
+                    },
+                    "item_id": {
+                        "type": "string",
+                        "description": "ID of reserved item",
+                        "example": "PART-001"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "description": "Quantity reserved",
+                        "example": 5
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Reservation status",
+                        "enum": ["confirmed", "pending", "cancelled"],
+                        "example": "confirmed"
+                    },
+                    "reserved_until": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp when reservation expires",
+                        "example": "2023-10-22T14:30:00.000000"
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "required": ["error"],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Error message describing what went wrong",
+                        "example": "Item not found"
+                    }
+                }
+            }
+        }
+    }
+}

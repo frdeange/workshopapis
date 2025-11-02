@@ -1,6 +1,5 @@
-fastapi
-uvicorn
 pydantic
 azure-cosmos
 python-dotenv
 azure-identity
+azure-functions

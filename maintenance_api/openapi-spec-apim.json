@@ -1,0 +1,1299 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Maintenance API",
+    "description": "Industrial Maintenance Management API - Manages technicians, maintenance jobs, scheduling, and service bookings for industrial equipment and machinery maintenance.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@workshoptools.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://workshoptools-apimfrdeange.azure-api.net/maintenanceapi",
+      "description": "Azure API Management - Production"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Verifies that the Maintenance API is running and healthy. Returns a simple status message.",
+        "operationId": "get-health",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "API is healthy and operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "healthy"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technicians": {
+      "get": {
+        "summary": "Get All Technicians",
+        "description": "Retrieves a complete list of all registered technicians with their specializations, skill levels, current status, and location information.",
+        "operationId": "get-technicians",
+        "tags": ["Technicians"],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved all technicians",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Technician"
+                  }
+                },
+                "examples": {
+                  "allTechnicians": {
+                    "summary": "Sample technicians list",
+                    "value": [
+                      {
+                        "id": "TECH-001",
+                        "technician_id": "TECH-001",
+                        "name": "John Smith",
+                        "specialization": ["Electrical", "HVAC"],
+                        "skill_level": "Senior",
+                        "status": "available",
+                        "current_location": "Factory Floor A",
+                        "contact_phone": "+1-555-0123"
+                      },
+                      {
+                        "id": "TECH-002",
+                        "technician_id": "TECH-002",
+                        "name": "Sarah Johnson",
+                        "specialization": ["Mechanical", "Hydraulics"],
+                        "skill_level": "Expert",
+                        "status": "available",
+                        "current_location": "Warehouse B",
+                        "contact_phone": "+1-555-0124"
+                      },
+                      {
+                        "id": "TECH-003",
+                        "technician_id": "TECH-003",
+                        "name": "Michael Chen",
+                        "specialization": ["Electronics", "Automation"],
+                        "skill_level": "Senior",
+                        "status": "busy",
+                        "current_location": "Production Line 3",
+                        "contact_phone": "+1-555-0125"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technicians/available": {
+      "get": {
+        "summary": "Get Available Technicians",
+        "description": "Retrieves a filtered list of technicians who are currently available (status = 'available'). Excludes technicians who are busy or off duty.",
+        "operationId": "get-available-technicians",
+        "tags": ["Technicians"],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved available technicians",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Technician"
+                  }
+                },
+                "examples": {
+                  "availableTechnicians": {
+                    "summary": "Technicians ready for assignment",
+                    "value": [
+                      {
+                        "id": "TECH-001",
+                        "technician_id": "TECH-001",
+                        "name": "John Smith",
+                        "specialization": ["Electrical", "HVAC"],
+                        "skill_level": "Senior",
+                        "status": "available",
+                        "current_location": "Factory Floor A",
+                        "contact_phone": "+1-555-0123"
+                      },
+                      {
+                        "id": "TECH-002",
+                        "technician_id": "TECH-002",
+                        "name": "Sarah Johnson",
+                        "specialization": ["Mechanical", "Hydraulics"],
+                        "skill_level": "Expert",
+                        "status": "available",
+                        "current_location": "Warehouse B",
+                        "contact_phone": "+1-555-0124"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technicians/{technician_id}": {
+      "get": {
+        "summary": "Get Specific Technician",
+        "description": "Retrieves detailed information about a specific technician by their ID, including specializations, skill level, current status, and location.",
+        "operationId": "get-technician",
+        "tags": ["Technicians"],
+        "parameters": [
+          {
+            "name": "technician_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the technician",
+            "schema": {
+              "type": "string"
+            },
+            "example": "TECH-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved technician details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Technician"
+                },
+                "examples": {
+                  "seniorTechnician": {
+                    "summary": "Senior electrical technician",
+                    "value": {
+                      "id": "TECH-001",
+                      "technician_id": "TECH-001",
+                      "name": "John Smith",
+                      "specialization": ["Electrical", "HVAC"],
+                      "skill_level": "Senior",
+                      "status": "available",
+                      "current_location": "Factory Floor A",
+                      "contact_phone": "+1-555-0123"
+                    }
+                  },
+                  "expertTechnician": {
+                    "summary": "Expert mechanical technician",
+                    "value": {
+                      "id": "TECH-002",
+                      "technician_id": "TECH-002",
+                      "name": "Sarah Johnson",
+                      "specialization": ["Mechanical", "Hydraulics"],
+                      "skill_level": "Expert",
+                      "status": "available",
+                      "current_location": "Warehouse B",
+                      "contact_phone": "+1-555-0124"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Technician not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Technician not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "summary": "Get All Maintenance Jobs",
+        "description": "Retrieves a complete list of all maintenance jobs across all statuses (scheduled, in_progress, completed, cancelled). Includes machine information, assigned technicians, priorities, and scheduling details.",
+        "operationId": "get-all-jobs",
+        "tags": ["Jobs"],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved all maintenance jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaintenanceJob"
+                  }
+                },
+                "examples": {
+                  "multipleJobs": {
+                    "summary": "Sample maintenance jobs",
+                    "value": [
+                      {
+                        "id": "JOB-20231015-001",
+                        "job_id": "JOB-20231015-001",
+                        "machine_id": "MACHINE-105",
+                        "error_code": "ERR-OVERHEAT-42",
+                        "description": "Motor overheating, requires inspection and bearing replacement",
+                        "priority": "high",
+                        "estimated_duration_hours": 3.5,
+                        "assigned_technician_id": "TECH-001",
+                        "scheduled_date": "2023-10-20",
+                        "scheduled_time": "09:00",
+                        "status": "scheduled",
+                        "created_at": "2023-10-15T14:30:00.000000",
+                        "notes": "Requested by: Plant Manager. Customer reported unusual noise."
+                      },
+                      {
+                        "id": "JOB-20231016-001",
+                        "job_id": "JOB-20231016-001",
+                        "machine_id": "MACHINE-203",
+                        "error_code": "ERR-LEAK-15",
+                        "description": "Hydraulic system leak in main cylinder",
+                        "priority": "critical",
+                        "estimated_duration_hours": 4.0,
+                        "assigned_technician_id": "TECH-002",
+                        "scheduled_date": "2023-10-18",
+                        "scheduled_time": "08:00",
+                        "status": "in_progress",
+                        "created_at": "2023-10-16T08:15:00.000000",
+                        "notes": "Requested by: Shift Supervisor. Production halted."
+                      },
+                      {
+                        "id": "JOB-20231014-001",
+                        "job_id": "JOB-20231014-001",
+                        "machine_id": "MACHINE-087",
+                        "error_code": null,
+                        "description": "Scheduled preventive maintenance - lubrication and inspection",
+                        "priority": "low",
+                        "estimated_duration_hours": 2.0,
+                        "assigned_technician_id": "TECH-004",
+                        "scheduled_date": "2023-10-14",
+                        "scheduled_time": "10:00",
+                        "status": "completed",
+                        "created_at": "2023-10-10T09:00:00.000000",
+                        "notes": "Requested by: Maintenance Scheduler. Monthly PM."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}": {
+      "get": {
+        "summary": "Get Specific Job",
+        "description": "Retrieves detailed information about a specific maintenance job by its ID.",
+        "operationId": "get-job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the maintenance job",
+            "schema": {
+              "type": "string"
+            },
+            "example": "JOB-20231015-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved job details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceJob"
+                },
+                "examples": {
+                  "scheduledJob": {
+                    "summary": "Scheduled maintenance job",
+                    "value": {
+                      "id": "JOB-20231015-001",
+                      "job_id": "JOB-20231015-001",
+                      "machine_id": "MACHINE-105",
+                      "error_code": "ERR-OVERHEAT-42",
+                      "description": "Motor overheating, requires inspection and bearing replacement",
+                      "priority": "high",
+                      "estimated_duration_hours": 3.5,
+                      "assigned_technician_id": "TECH-001",
+                      "scheduled_date": "2023-10-20",
+                      "scheduled_time": "09:00",
+                      "status": "scheduled",
+                      "created_at": "2023-10-15T14:30:00.000000",
+                      "notes": "Requested by: Plant Manager. Customer reported unusual noise."
+                    }
+                  },
+                  "inProgressJob": {
+                    "summary": "Job currently in progress",
+                    "value": {
+                      "id": "JOB-20231016-001",
+                      "job_id": "JOB-20231016-001",
+                      "machine_id": "MACHINE-203",
+                      "error_code": "ERR-LEAK-15",
+                      "description": "Hydraulic system leak in main cylinder",
+                      "priority": "critical",
+                      "estimated_duration_hours": 4.0,
+                      "assigned_technician_id": "TECH-002",
+                      "scheduled_date": "2023-10-18",
+                      "scheduled_time": "08:00",
+                      "status": "in_progress",
+                      "created_at": "2023-10-16T08:15:00.000000",
+                      "notes": "Requested by: Shift Supervisor. Production halted."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Job not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/status/{status}": {
+      "get": {
+        "summary": "Get Jobs by Status",
+        "description": "Retrieves all maintenance jobs filtered by their current status. Useful for tracking workflow and identifying jobs requiring attention.",
+        "operationId": "get-jobs-by-status",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "description": "The status to filter jobs by",
+            "schema": {
+              "type": "string",
+              "enum": ["scheduled", "in_progress", "completed", "cancelled"]
+            },
+            "example": "scheduled"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved jobs with the specified status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaintenanceJob"
+                  }
+                },
+                "examples": {
+                  "scheduledJobs": {
+                    "summary": "Jobs waiting to be started",
+                    "value": [
+                      {
+                        "id": "JOB-20231015-001",
+                        "job_id": "JOB-20231015-001",
+                        "machine_id": "MACHINE-105",
+                        "error_code": "ERR-OVERHEAT-42",
+                        "description": "Motor overheating, requires inspection and bearing replacement",
+                        "priority": "high",
+                        "estimated_duration_hours": 3.5,
+                        "assigned_technician_id": "TECH-001",
+                        "scheduled_date": "2023-10-20",
+                        "scheduled_time": "09:00",
+                        "status": "scheduled",
+                        "created_at": "2023-10-15T14:30:00.000000",
+                        "notes": "Requested by: Plant Manager. Customer reported unusual noise."
+                      },
+                      {
+                        "id": "JOB-20231017-001",
+                        "job_id": "JOB-20231017-001",
+                        "machine_id": "MACHINE-156",
+                        "error_code": "ERR-SENSOR-09",
+                        "description": "Proximity sensor malfunction on conveyor belt",
+                        "priority": "medium",
+                        "estimated_duration_hours": 1.5,
+                        "assigned_technician_id": "TECH-003",
+                        "scheduled_date": "2023-10-19",
+                        "scheduled_time": "13:00",
+                        "status": "scheduled",
+                        "created_at": "2023-10-17T11:20:00.000000",
+                        "notes": "Requested by: Line Operator. Sensor needs replacement."
+                      }
+                    ]
+                  },
+                  "inProgressJobs": {
+                    "summary": "Jobs currently being worked on",
+                    "value": [
+                      {
+                        "id": "JOB-20231016-001",
+                        "job_id": "JOB-20231016-001",
+                        "machine_id": "MACHINE-203",
+                        "error_code": "ERR-LEAK-15",
+                        "description": "Hydraulic system leak in main cylinder",
+                        "priority": "critical",
+                        "estimated_duration_hours": 4.0,
+                        "assigned_technician_id": "TECH-002",
+                        "scheduled_date": "2023-10-18",
+                        "scheduled_time": "08:00",
+                        "status": "in_progress",
+                        "created_at": "2023-10-16T08:15:00.000000",
+                        "notes": "Requested by: Shift Supervisor. Production halted."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/status": {
+      "put": {
+        "summary": "Update Job Status",
+        "description": "Updates the status of a specific maintenance job. Used to move jobs through the workflow: scheduled → in_progress → completed, or to cancel jobs.",
+        "operationId": "put-update-job-status",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the job to update",
+            "schema": {
+              "type": "string"
+            },
+            "example": "JOB-20231015-001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "New status for the job",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobStatusUpdate"
+              },
+              "examples": {
+                "startJob": {
+                  "summary": "Start a scheduled job",
+                  "value": {
+                    "status": "in_progress"
+                  }
+                },
+                "completeJob": {
+                  "summary": "Mark job as completed",
+                  "value": {
+                    "status": "completed"
+                  }
+                },
+                "cancelJob": {
+                  "summary": "Cancel a job",
+                  "value": {
+                    "status": "cancelled"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceJob"
+                },
+                "examples": {
+                  "updatedJob": {
+                    "summary": "Job status updated",
+                    "value": {
+                      "id": "JOB-20231015-001",
+                      "job_id": "JOB-20231015-001",
+                      "machine_id": "MACHINE-105",
+                      "error_code": "ERR-OVERHEAT-42",
+                      "description": "Motor overheating, requires inspection and bearing replacement",
+                      "priority": "high",
+                      "estimated_duration_hours": 3.5,
+                      "assigned_technician_id": "TECH-001",
+                      "scheduled_date": "2023-10-20",
+                      "scheduled_time": "09:00",
+                      "status": "in_progress",
+                      "created_at": "2023-10-15T14:30:00.000000",
+                      "notes": "Requested by: Plant Manager. Customer reported unusual noise."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid status. Must be one of: scheduled, in_progress, completed, cancelled"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Job not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/book": {
+      "post": {
+        "summary": "Book Maintenance Job",
+        "description": "Creates a new maintenance job booking with machine details, error information, priority level, and automatically assigns an available technician and schedule slot.",
+        "operationId": "post-book-maintenance-job",
+        "tags": ["Jobs"],
+        "requestBody": {
+          "required": true,
+          "description": "Details of the maintenance job to book",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobBookingRequest"
+              },
+              "examples": {
+                "criticalJob": {
+                  "summary": "Critical hydraulic issue",
+                  "value": {
+                    "machine_id": "MACHINE-208",
+                    "error_code": "ERR-PRESSURE-22",
+                    "description": "Loss of hydraulic pressure in main system",
+                    "priority": "critical",
+                    "estimated_duration_hours": 3.0,
+                    "requested_by": "Production Manager",
+                    "notes": "Production line stopped. Urgent repair needed."
+                  }
+                },
+                "routineMaintenance": {
+                  "summary": "Routine preventive maintenance",
+                  "value": {
+                    "machine_id": "MACHINE-099",
+                    "error_code": null,
+                    "description": "Quarterly preventive maintenance - inspection and calibration",
+                    "priority": "low",
+                    "estimated_duration_hours": 2.5,
+                    "requested_by": "Maintenance Coordinator",
+                    "notes": "Scheduled quarterly PM check."
+                  }
+                },
+                "electricalIssue": {
+                  "summary": "Electrical fault",
+                  "value": {
+                    "machine_id": "MACHINE-142",
+                    "error_code": "ERR-SHORT-17",
+                    "description": "Intermittent electrical short in control panel",
+                    "priority": "high",
+                    "estimated_duration_hours": 4.5,
+                    "requested_by": "Electrical Supervisor",
+                    "notes": "Safety concern. Investigate wiring."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Maintenance job booked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobBookingResponse"
+                },
+                "examples": {
+                  "successfulBooking": {
+                    "summary": "Job booked with technician assigned",
+                    "value": {
+                      "job_id": "JOB-20241102-005",
+                      "machine_id": "MACHINE-208",
+                      "error_code": "ERR-PRESSURE-22",
+                      "description": "Loss of hydraulic pressure in main system",
+                      "priority": "critical",
+                      "estimated_duration_hours": 3.0,
+                      "assigned_technician_id": "TECH-002",
+                      "assigned_technician_name": "Sarah Johnson",
+                      "scheduled_date": "2024-11-03",
+                      "scheduled_time": "08:00",
+                      "status": "scheduled",
+                      "created_at": "2024-11-02T22:15:00.000000",
+                      "notes": "Production line stopped. Urgent repair needed. Requested by: Production Manager"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data or no available technicians",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "noTechnicians": {
+                    "summary": "No available technicians",
+                    "value": {
+                      "error": "No available technicians found for the requested time slot"
+                    }
+                  },
+                  "invalidPriority": {
+                    "summary": "Invalid priority value",
+                    "value": {
+                      "error": "Priority must be one of: low, medium, high, critical"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schedule/technician/{technician_id}": {
+      "get": {
+        "summary": "Get Technician Schedule",
+        "description": "Retrieves all schedule slots for a specific technician, including availability, dates, times, and locations. Shows both available and booked time slots.",
+        "operationId": "get-technician-schedule",
+        "tags": ["Schedule"],
+        "parameters": [
+          {
+            "name": "technician_id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the technician",
+            "schema": {
+              "type": "string"
+            },
+            "example": "TECH-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved technician's schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleSlot"
+                  }
+                },
+                "examples": {
+                  "technicianSchedule": {
+                    "summary": "Weekly schedule for technician",
+                    "value": [
+                      {
+                        "id": "SLOT-20231020-001",
+                        "slot_id": "SLOT-20231020-001",
+                        "technician_id": "TECH-001",
+                        "date": "2023-10-20",
+                        "start_time": "09:00",
+                        "end_time": "17:00",
+                        "available": false,
+                        "location": "Factory Floor A"
+                      },
+                      {
+                        "id": "SLOT-20231021-001",
+                        "slot_id": "SLOT-20231021-001",
+                        "technician_id": "TECH-001",
+                        "date": "2023-10-21",
+                        "start_time": "09:00",
+                        "end_time": "17:00",
+                        "available": true,
+                        "location": "Factory Floor A"
+                      },
+                      {
+                        "id": "SLOT-20231022-001",
+                        "slot_id": "SLOT-20231022-001",
+                        "technician_id": "TECH-001",
+                        "date": "2023-10-22",
+                        "start_time": "09:00",
+                        "end_time": "17:00",
+                        "available": true,
+                        "location": "Factory Floor A"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Technician not found or no schedule available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "No schedule found for technician"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schedule/next-available": {
+      "get": {
+        "summary": "Get Next Available Slot",
+        "description": "Finds and returns the next available schedule slot across all technicians. Useful for quickly scheduling urgent maintenance work.",
+        "operationId": "get-next-available-slot",
+        "tags": ["Schedule"],
+        "responses": {
+          "200": {
+            "description": "Successfully found next available slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleSlot"
+                },
+                "examples": {
+                  "nextAvailable": {
+                    "summary": "Next open time slot",
+                    "value": {
+                      "id": "SLOT-20231019-002",
+                      "slot_id": "SLOT-20231019-002",
+                      "technician_id": "TECH-002",
+                      "date": "2023-10-19",
+                      "start_time": "08:00",
+                      "end_time": "16:00",
+                      "available": true,
+                      "location": "Warehouse B"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No available slots found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "No available schedule slots found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Technician": {
+        "type": "object",
+        "required": ["id", "technician_id", "name", "specialization", "skill_level", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Document ID (same as technician_id)",
+            "example": "TECH-001"
+          },
+          "technician_id": {
+            "type": "string",
+            "description": "Unique identifier for the technician",
+            "example": "TECH-001"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the technician",
+            "example": "John Smith"
+          },
+          "specialization": {
+            "type": "array",
+            "description": "List of technical specializations",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Electrical", "HVAC"]
+          },
+          "skill_level": {
+            "type": "string",
+            "description": "Skill level of the technician",
+            "enum": ["Junior", "Senior", "Expert"],
+            "example": "Senior"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current availability status",
+            "enum": ["available", "busy", "off_duty"],
+            "example": "available"
+          },
+          "current_location": {
+            "type": "string",
+            "description": "Current work location of the technician",
+            "example": "Factory Floor A"
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "Contact phone number",
+            "example": "+1-555-0123"
+          }
+        }
+      },
+      "MaintenanceJob": {
+        "type": "object",
+        "required": ["id", "job_id", "machine_id", "description", "priority", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Document ID (same as job_id)",
+            "example": "JOB-20231015-001"
+          },
+          "job_id": {
+            "type": "string",
+            "description": "Unique identifier for the maintenance job",
+            "example": "JOB-20231015-001"
+          },
+          "machine_id": {
+            "type": "string",
+            "description": "Identifier of the machine requiring maintenance",
+            "example": "MACHINE-105"
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error code if applicable (null for preventive maintenance)",
+            "example": "ERR-OVERHEAT-42"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the maintenance work required",
+            "example": "Motor overheating, requires inspection and bearing replacement"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Priority level of the maintenance job",
+            "enum": ["low", "medium", "high", "critical"],
+            "example": "high"
+          },
+          "estimated_duration_hours": {
+            "type": "number",
+            "format": "float",
+            "description": "Estimated time to complete the job in hours",
+            "example": 3.5
+          },
+          "assigned_technician_id": {
+            "type": "string",
+            "description": "ID of the assigned technician",
+            "example": "TECH-001"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Scheduled date for the maintenance",
+            "example": "2023-10-20"
+          },
+          "scheduled_time": {
+            "type": "string",
+            "description": "Scheduled time (HH:MM format)",
+            "example": "09:00"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the job",
+            "enum": ["scheduled", "in_progress", "completed", "cancelled"],
+            "example": "scheduled"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the job was created",
+            "example": "2023-10-15T14:30:00.000000"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes or comments about the job",
+            "example": "Requested by: Plant Manager. Customer reported unusual noise."
+          }
+        }
+      },
+      "ScheduleSlot": {
+        "type": "object",
+        "required": ["id", "slot_id", "technician_id", "date", "start_time", "end_time", "available"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Document ID (same as slot_id)",
+            "example": "SLOT-20231020-001"
+          },
+          "slot_id": {
+            "type": "string",
+            "description": "Unique identifier for the schedule slot",
+            "example": "SLOT-20231020-001"
+          },
+          "technician_id": {
+            "type": "string",
+            "description": "ID of the technician this slot belongs to",
+            "example": "TECH-001"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the schedule slot",
+            "example": "2023-10-20"
+          },
+          "start_time": {
+            "type": "string",
+            "description": "Start time of the slot (HH:MM format)",
+            "example": "09:00"
+          },
+          "end_time": {
+            "type": "string",
+            "description": "End time of the slot (HH:MM format)",
+            "example": "17:00"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Whether the slot is available for booking",
+            "example": true
+          },
+          "location": {
+            "type": "string",
+            "description": "Work location for this time slot",
+            "example": "Factory Floor A"
+          }
+        }
+      },
+      "JobStatusUpdate": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "New status for the job",
+            "enum": ["scheduled", "in_progress", "completed", "cancelled"],
+            "example": "in_progress"
+          }
+        }
+      },
+      "JobBookingRequest": {
+        "type": "object",
+        "required": ["machine_id", "description", "priority", "estimated_duration_hours"],
+        "properties": {
+          "machine_id": {
+            "type": "string",
+            "description": "ID of the machine requiring maintenance",
+            "example": "MACHINE-208"
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error code if applicable (null for preventive maintenance)",
+            "example": "ERR-PRESSURE-22"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the maintenance work needed",
+            "example": "Loss of hydraulic pressure in main system"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Priority level for the job",
+            "enum": ["low", "medium", "high", "critical"],
+            "example": "critical"
+          },
+          "estimated_duration_hours": {
+            "type": "number",
+            "format": "float",
+            "description": "Estimated duration in hours",
+            "minimum": 0.5,
+            "example": 3.0
+          },
+          "requested_by": {
+            "type": "string",
+            "description": "Name or ID of the person requesting the maintenance",
+            "example": "Production Manager"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes or special instructions",
+            "example": "Production line stopped. Urgent repair needed."
+          }
+        }
+      },
+      "JobBookingResponse": {
+        "type": "object",
+        "required": ["job_id", "machine_id", "description", "priority", "assigned_technician_id", "status"],
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "Unique identifier for the newly created job",
+            "example": "JOB-20241102-005"
+          },
+          "machine_id": {
+            "type": "string",
+            "description": "Machine ID from the request",
+            "example": "MACHINE-208"
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error code if provided",
+            "example": "ERR-PRESSURE-22"
+          },
+          "description": {
+            "type": "string",
+            "description": "Job description",
+            "example": "Loss of hydraulic pressure in main system"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "example": "critical"
+          },
+          "estimated_duration_hours": {
+            "type": "number",
+            "format": "float",
+            "example": 3.0
+          },
+          "assigned_technician_id": {
+            "type": "string",
+            "description": "ID of the technician assigned to this job",
+            "example": "TECH-002"
+          },
+          "assigned_technician_name": {
+            "type": "string",
+            "description": "Name of the assigned technician",
+            "example": "Sarah Johnson"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when the job is scheduled",
+            "example": "2024-11-03"
+          },
+          "scheduled_time": {
+            "type": "string",
+            "description": "Time when the job is scheduled (HH:MM)",
+            "example": "08:00"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status of the job",
+            "example": "scheduled"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the job was created",
+            "example": "2024-11-02T22:15:00.000000"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Combined notes including request information",
+            "example": "Production line stopped. Urgent repair needed. Requested by: Production Manager"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message describing what went wrong",
+            "example": "Resource not found"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "name": "Ocp-Apim-Subscription-Key",
+        "in": "header",
+        "description": "API subscription key for authentication via header"
+      },
+      "apiKeyQuery": {
+        "type": "apiKey",
+        "name": "subscription-key",
+        "in": "query",
+        "description": "API subscription key for authentication via query parameter"
+      }
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "API health check endpoints"
+    },
+    {
+      "name": "Technicians",
+      "description": "Technician information and availability management"
+    },
+    {
+      "name": "Jobs",
+      "description": "Maintenance job management and tracking"
+    },
+    {
+      "name": "Schedule",
+      "description": "Schedule slots and availability management"
+    }
+  ]
+}

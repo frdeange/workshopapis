@@ -1,6 +1,6 @@
 {
-    "azureFunctions.deploySubpath": "maintenance_api",
-    "azureFunctions.projectSubpath": "maintenance_api",
+    "azureFunctions.deploySubpath": "account_api",
+    "azureFunctions.projectSubpath": "account_api",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",

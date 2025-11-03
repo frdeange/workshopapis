@@ -5,13 +5,13 @@
     "description": "Industrial Inventory Management API - Manages inventory items, stock levels, categories, and reservations for industrial equipment and materials.",
     "version": "1.0.0",
     "contact": {
-      "name": "API Support",
-      "email": "support@workshoptools.com"
+      "name": "Kiko de Angel",
+      "email": "frdeange@microsoft.com"
     }
   },
   "servers": [
     {
-      "url": "https://workshoptools-apimfrdeange.azure-api.net/inventoryapi",
+      "url": "https://workshoptools-apim.azure-api.net/inventoryapi",
       "description": "Azure API Management - Production"
     }
   ],

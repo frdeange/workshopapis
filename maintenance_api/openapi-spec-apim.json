@@ -5,13 +5,13 @@
     "description": "Industrial Maintenance Management API - Manages technicians, maintenance jobs, scheduling, and service bookings for industrial equipment and machinery maintenance.",
     "version": "1.0.0",
     "contact": {
-      "name": "API Support",
-      "email": "support@workshoptools.com"
+      "name": "Kiko de Angel",
+      "email": "frdeange@microsoft.com"
     }
   },
   "servers": [
     {
-      "url": "https://workshoptools-apimfrdeange.azure-api.net/maintenanceapi",
+      "url": "https://workshoptools-apim.azure-api.net/maintenanceapi",
       "description": "Azure API Management - Production"
     }
   ],

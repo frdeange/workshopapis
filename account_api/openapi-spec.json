@@ -9,7 +9,7 @@
         }
     },
     "servers": [{
-        "url": "https://workshoptools-apimfrdeange.azure-api.net/accountapi",
+        "url": "https://workshoptools-apim.azure-api.net/accountapi",
         "description": "Production API Gateway"
     }],
     "paths": {

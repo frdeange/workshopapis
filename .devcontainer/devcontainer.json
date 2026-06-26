@@ -6,7 +6,7 @@
 	"image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye",
 	"features": {
 		"ghcr.io/devcontainers/features/azure-cli:1": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:4": {},
 		"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {}
 	},
 	"customizations": {
